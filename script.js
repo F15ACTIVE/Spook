@@ -565,11 +565,14 @@ function walk(character, terrain, speed){
 		}else if (action_break == 1 || action_break == 2){
   		level_mover(xdisplacement, 0);
 			window[character].body.css("top", yposition);
-		}else if (action_break == 3 || action_break == 4){
+		}else if (action_break == 3){
 			level_mover(0, -ydisplacement);
-			//$('#stats').text(ydisplacement);
+			window[character].body.css("left", xposition);
+		}else if (action_break == 4){
+			level_mover(0, ydisplacement);
 			window[character].body.css("left", xposition);
 		}
+		
 
   }, cycletime);
 }
