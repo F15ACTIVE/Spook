@@ -1,0 +1,49 @@
+﻿/*=======RESET=======*/
+html, body, body div, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, figure, footer, header, hgroup, menu, nav, section, time, mark, audio, video, hr {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;    
+}
+
+html, body{
+background:black;
+overflow:hidden;
+}
+
+#title{
+background:url('title_card.jpg');
+width:250px;height:195px;
+margin:auto;
+}
+
+#central_screen_container{
+padding:10px;
+/*height:40%;width:80%;
+background:black;
+padding:100px;border:1px #111111 solid;
+margin:auto;border-radius:50px;*/
+}
+
+#central_screen{
+/*position:relative;*/
+}
+
+#spook{
+height:50px;width:50px;
+background:url('sprites.gif') 0px 0px;
+position:absolute;top:300px;left:0px;
+}
+
+#stats{
+color:white;
+/*background:#222222;padding:10px;border-radius:10px;*/
+}
+
+#land .tile{
+height:50px;width:200px;
+position:absolute;top:0px;left:0px;
+}
