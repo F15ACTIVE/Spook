@@ -69,6 +69,8 @@ function ozone_mapping_params(x, y, w, h, tile_name, tile_terrain){
   this.h = h;
 	this.body = $(tile_name);
 	this.tile_terrain = tile_terrain;
+	this.name = tile_name;
+	this.num = tile_name.replace( /^\D+/g, '');
 }
 
 //=============================================================================================================================================
@@ -88,7 +90,8 @@ function ozone_mapping_params(x, y, w, h, tile_name, tile_terrain){
   $('#action_break4').css("top", y_action_max);
 
 	var action_break = 0;
-	
+  var master_collision_index = 0;//used so that the collision detection function only determines collisions for tiles that around Spook
+
   //initiate the keys and ozone array
   var key_down = {'37':null, '38':null, '39':null, '40':null, '16':null, 'jump':null};
   var keydown_count = 0;
@@ -273,7 +276,18 @@ function ozone_mapping(tile_name, tile_number, x, y, tile_terrain){
 action_break = null;
 function collision_detection(character, character_x, character_y){
 
-  var ozone_count = 0;
+  //the ozone_count index will start on the tile Spook is on -5
+  var ozone_count = master_collision_index-5;
+	if (ozone_count < 0){//if the -5 is less than 0, make the index 0 since index can't be lower than 0
+  	ozone_count = 0;
+	}
+	var ozone_coldec_max = ozone_count+10;//make the limit of the check +10 ahead of ozone_count (or 5 tiles ahead of Spook)
+	if (ozone_coldec_max > ozone_max){//if the max is higher than the real max, set it to the real max
+  	ozone_coldec_max = ozone_max;
+	}
+
+	$('#stats').text(ozone_coldec_max);
+	
   //var stop = 0;
   var character_x = Math.round(character_x);
   var character_xw = Math.round(character_x + window[character].width);
@@ -291,7 +305,7 @@ function collision_detection(character, character_x, character_y){
   var y_ceiling_collision = 0;
 
 	//if the object hasn't hit the first object, check all subsequent objects
-  while (ozone_count < ozone_max){
+  while (ozone_count < ozone_coldec_max){
   	
     //if the array index that once contained the level element is gone, then skip it
     if (ozone_array[ozone_count] == null){
@@ -314,9 +328,6 @@ function collision_detection(character, character_x, character_y){
     var yh = Math.round(y +ozone_array[ozone_count].h);
 		var yh_min = yh - y_buffer;//buffer x values
 		var yh_max = yh + y_buffer;//buffer x values
-		
-		//var tile_terrain = ozone_array[ozone_count].tile_terrain;
-		//$('#stats').text(tile_terrain);
 		
 		//check 1: which surface buffer did he hit
 		//check 2: is he within the opposite axis zone (if he hit x, was he within the y range?) 
@@ -359,6 +370,11 @@ function collision_detection(character, character_x, character_y){
   			key_down['jump'] = null;
   			stop(character, world, terrain);
 			}
+
+      //whichever tile Spook is on, make that the master collision index;
+      master_collision_index = ozone_array[ozone_count].num;
+      //$('#stats').text(master_collision_index);
+
       //$('#stats').text(character+' '+world+' '+terrain);			
 
 		}else if ((character_y >= yh_min && character_y <= yh_max) && 
@@ -390,7 +406,6 @@ function collision_detection(character, character_x, character_y){
 	}else{
   	action_break = 0;
 	}
-	$('#stats').text();
 		
 }
 
@@ -415,49 +430,7 @@ function level_mover(xdisplacement, ydisplacement){
 		ozone_array[ozone_count].body.css('top', yposition);
     ozone_count = ozone_count + 1;
 	}
-		
-  //if there's no motion through the time interval
-  /*var ozone_count = 0;
-    level_mover_interval = setInterval(function(){
-    	while (action_break == 3){
-    		var yposition = ozone_array[ozone_count].body.offset().top + 5;//+ pushes the level down
-    		//send the tile creation details to remap the tiles
-        ozone_mapping(tile_name, ozone_count, xposition, yposition, ozone_array[ozone_count].tile_terrain);
-        //$('#stats').text(ozone_max);
-    
-    		ozone_array[ozone_count].body.css('left', xposition);
-    		ozone_array[ozone_count].body.css('top', yposition);
-        ozone_count = ozone_count + 1;
-    	}
-			if (action_break != 3){
-  			clearInterval(level_mover_interval);
-			}
-		}, 1000);*/
-
-  /*//if there's no motion through the time interval
-  var ozone_count = 0;
-	//$('#stats').text(window[character].move_interval);
-	if (window[character].move_interval == null){
-
-    level_mover_interval = setInterval(function(){
-    	while (action_break == 3){
-    		var yposition = ozone_array[ozone_count].body.offset().top + 1;//+ pushes the level down
-    		//send the tile creation details to remap the tiles
-        ozone_mapping(tile_name, ozone_count, xposition, yposition, ozone_array[ozone_count].tile_terrain);
-        //$('#stats').text(ozone_max);
-    
-    		ozone_array[ozone_count].body.css('left', xposition);
-    		ozone_array[ozone_count].body.css('top', yposition);
-        ozone_count = ozone_count + 1;
-    	}
 			
-			if (action_break != 3){
-  			clearInterval(level_mover_interval);
-			}
-			
-		}, 1);
-	}*/
-	
 	//use tile_name to refer to land, background, sky, etc, and move them by smaller values of the x and y displacement values
 }
 

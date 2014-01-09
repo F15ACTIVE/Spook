@@ -51,11 +51,11 @@ position:absolute;top:0px;left:0px;
 #action_break1, #action_break2{
 height:100%;width:1px;
 position:absolute;top:0px;
-/*background:#0091ff;*/
+background:#0091ff;
 }
 
 #action_break3, #action_break4{
 height:1px;width:100%;
 position:absolute;left:0px;
-/*background:#0091ff;*/
+background:#0091ff;
 }
