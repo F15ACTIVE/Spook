@@ -78,10 +78,14 @@ function ozone_mapping_params(x, y, w, h, tile_name, tile_terrain){
   var page_width = Math.round($(window).width());
 	var x_action_min = Math.round(page_width*0.3);
 	var x_action_max = Math.round(page_width-(page_width*0.3));
+  $('#action_break1').css("left", x_action_min);
+  $('#action_break2').css("left", x_action_max);
 
   var page_height = Math.round($(window).height());
 	var y_action_min = Math.round(page_height*0.3);
 	var y_action_max = Math.round(page_height-(page_height*0.3));
+  $('#action_break3').css("top", y_action_min);
+  $('#action_break4').css("top", y_action_max);
 
 	var action_break = 0;
 	
@@ -98,7 +102,7 @@ function ozone_mapping_params(x, y, w, h, tile_name, tile_terrain){
 	//*(not used) decelerationfactor: how quickly you decelerate
 	//cycletimefactor: changes cycletime for time distortions
 	//image_location
-  var dirt = new medium_property(4, 2, 0, 0, 0, 1, "-0px -0px");//4, 1, 1, 1, 15, 1, 
+  var dirt = new medium_property(4, 1, 0, 0, 0, 1, "-0px -0px");//4, 1, 1, 1, 15, 1, 
   var ice = new medium_property(0.1, 0.1, 0, 0, 0, 1, "-200px -0px");
   var sludge = new medium_property(0.2, 1, 0, 0, 0, 1, "-0px -0px");
 	
@@ -215,9 +219,9 @@ function world_mapping(world){
 	var tile_name = 'land';
 	
 	var tile_counter = 0;
-	var tile_terrain = [1, 1, 1, 1, 1, 2, 2, 1, 2];
-	var tile_posx = [0, 	 200,  400,  600,  800,  1000, 	1200, 			1300,  1500];
-	var tile_posy = [500,  500,  400,  300,  200,  250, 	250, 				100, 50];
+	var tile_terrain = [1,1,1,1,1,2,2,1,2,1,1];
+	var tile_posx = [0,200,400,600,800,1000,1200,1300,1500,1700,2000];
+	var tile_posy = [500,500,400,300,200,250,250,100,50,100,100];
 	var tile_countmax = tile_terrain.length; 
 
   while (tile_counter < tile_countmax){
@@ -369,19 +373,25 @@ function collision_detection(character, character_x, character_y){
     ozone_count = ozone_count + 1;
 	}
 	
+	//this creates a buffer so that if Spook is close to hitting border, he's breached the action window
+	/*var x_action_min_buffer = x_action_min + 50;
+	var x_action_max_buffer = x_action_max - 50;
+	var y_action_min_buffer = y_action_min + 50;
+	var y_action_max_buffer = y_action_max - 50;*/
+	
 	if (character_x <= x_action_min && window[character].x.v < 0){
 		action_break = 1;//left
-	}else if (character_x >= x_action_max && window[character].x.v >= 0){
+	}else if (character_xw >= x_action_max && window[character].x.v >= 0){
 		action_break = 2;//right
 	}else if (character_y <= y_action_min){
 		action_break = 3;//top
-	}else if (character_y >= y_action_max){
+	}else if (character_yh >= y_action_max){
 		action_break = 4;//bottom
 	}else{
   	action_break = 0;
 	}
-	
-	
+	$('#stats').text();
+		
 }
 
 //level mover
@@ -389,8 +399,14 @@ function level_mover(xdisplacement, ydisplacement){
   var ozone_count = 0;
 	var tile_name = 'land';
   while (ozone_count < ozone_max){
-		var xposition = ozone_array[ozone_count].body.offset().left - xdisplacement;
-		var yposition = ozone_array[ozone_count].body.offset().top - ydisplacement;
+		var xposition = ozone_array[ozone_count].body.offset().left - xdisplacement;//- pushes the level back
+		if (ydisplacement != 0 && action_break == 3){//if the ydisplacement is 0, so the character is not moving vertically, do not move change the offset().top
+  		var yposition = ozone_array[ozone_count].body.offset().top - ydisplacement + 5;//+ pushes the level down
+		}else if (ydisplacement != 0 && action_break == 4){
+  		var yposition = ozone_array[ozone_count].body.offset().top - ydisplacement - 5;//+ pushes the level down
+		}else{
+  		var yposition = ozone_array[ozone_count].body.offset().top;//+ pushes the level down
+		}
 		//send the tile creation details to remap the tiles
     ozone_mapping(tile_name, ozone_count, xposition, yposition, ozone_array[ozone_count].tile_terrain);
     //$('#stats').text(ozone_max);
@@ -399,10 +415,50 @@ function level_mover(xdisplacement, ydisplacement){
 		ozone_array[ozone_count].body.css('top', yposition);
     ozone_count = ozone_count + 1;
 	}
+		
+  //if there's no motion through the time interval
+  /*var ozone_count = 0;
+    level_mover_interval = setInterval(function(){
+    	while (action_break == 3){
+    		var yposition = ozone_array[ozone_count].body.offset().top + 5;//+ pushes the level down
+    		//send the tile creation details to remap the tiles
+        ozone_mapping(tile_name, ozone_count, xposition, yposition, ozone_array[ozone_count].tile_terrain);
+        //$('#stats').text(ozone_max);
+    
+    		ozone_array[ozone_count].body.css('left', xposition);
+    		ozone_array[ozone_count].body.css('top', yposition);
+        ozone_count = ozone_count + 1;
+    	}
+			if (action_break != 3){
+  			clearInterval(level_mover_interval);
+			}
+		}, 1000);*/
+
+  /*//if there's no motion through the time interval
+  var ozone_count = 0;
+	//$('#stats').text(window[character].move_interval);
+	if (window[character].move_interval == null){
+
+    level_mover_interval = setInterval(function(){
+    	while (action_break == 3){
+    		var yposition = ozone_array[ozone_count].body.offset().top + 1;//+ pushes the level down
+    		//send the tile creation details to remap the tiles
+        ozone_mapping(tile_name, ozone_count, xposition, yposition, ozone_array[ozone_count].tile_terrain);
+        //$('#stats').text(ozone_max);
+    
+    		ozone_array[ozone_count].body.css('left', xposition);
+    		ozone_array[ozone_count].body.css('top', yposition);
+        ozone_count = ozone_count + 1;
+    	}
+			
+			if (action_break != 3){
+  			clearInterval(level_mover_interval);
+			}
+			
+		}, 1);
+	}*/
 	
 	//use tile_name to refer to land, background, sky, etc, and move them by smaller values of the x and y displacement values
-	
-
 }
 
 //this stops the character
@@ -413,7 +469,11 @@ function stop(character, world, terrain){
 
   window[character].move_interval = setInterval(function(){
   	//the acceleration is dependent on the speed of character (more speed, more acceleration)
-    var a = (window[terrain].avxfactor * window[character].x.v)*-1;
+    if (key_down['jump'] == true){
+      var a = (window[terrain].avxfactor * window[character].x.v)*-0.5;//x2 for greater stoppage WHEN ON THE GROUND
+		}else{
+      var a = (window[terrain].avxfactor * window[character].x.v)*-2;//x2 for greater stoppage WHEN ON THE GROUND
+		}
 		var g = window[world].gravity;
 		var a_test = Math.round((a*cycletime/1000)*1000)/1000;//round to 2 decimal places
 
@@ -566,7 +626,7 @@ function walk(character, terrain, speed){
   		level_mover(xdisplacement, 0);
 			window[character].body.css("top", yposition);
 		}else if (action_break == 3){
-			level_mover(0, -ydisplacement);
+			level_mover(0, ydisplacement);
 			window[character].body.css("left", xposition);
 		}else if (action_break == 4){
 			level_mover(0, ydisplacement);
@@ -640,6 +700,7 @@ function jump(character, world, terrain){//spook_y_dspi, spook_y_velavg, spook_x
 
 //this is an animation of when the character stands around
 function stand(character){
+
   clearInterval(window[character].move_interval);
 
 	window[character].x.v = 0;
@@ -693,6 +754,35 @@ function stand(character){
 			//repeat the cycle
 			stand(character);
     }
+
+  }, cycletime);
+}
+
+//for impacts on walls and grounds, the character shakes their eyes
+function eyeshake(character){
+  clearInterval(window[character].move_interval);
+
+	var f = 0;
+  window[character].move_interval = setInterval(function(){
+    f = f+1;
+    if (f%2==0){
+      if (window[character].direction == 1){
+        	window[character].body.css("background-position", "-0px -300px");
+      }else{
+        	window[character].body.css("background-position", "-100px -300px");
+      }	
+    }else{  
+      if (window[character].direction == 1){
+        	window[character].body.css("background-position", "-50px -300px");
+      }else{
+        	window[character].body.css("background-position", "-150px -300px");
+      }
+  	}	
+
+    //after 3 frames just stand
+    if (f < 4){
+    	stand(character);
+    }	
 
   }, cycletime);
 }
