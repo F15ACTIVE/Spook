@@ -281,13 +281,11 @@ function collision_detection(character, character_x, character_y){
 	if (ozone_count < 0){//if the -5 is less than 0, make the index 0 since index can't be lower than 0
   	ozone_count = 0;
 	}
-	var ozone_coldec_max = ozone_count+10;//make the limit of the check +10 ahead of ozone_count (or 5 tiles ahead of Spook)
+	var ozone_coldec_max = ozone_count+10;//make the limit of the check +10 ahead of ozone_count (or 5 tiles ahead of Spook)//coldec = collisiondetection
 	if (ozone_coldec_max > ozone_max){//if the max is higher than the real max, set it to the real max
   	ozone_coldec_max = ozone_max;
 	}
 
-	$('#stats').text(ozone_coldec_max);
-	
   //var stop = 0;
   var character_x = Math.round(character_x);
   var character_xw = Math.round(character_x + window[character].width);
