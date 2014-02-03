@@ -107,7 +107,8 @@ function ozone_mapping_params(x, y, w, h, tile_name, tile_terrain){
 	//image_location
   var dirt = new medium_property(4, 1, 0, 0, 0, 1, "-0px -0px");//4, 1, 1, 1, 15, 1, 
   var ice = new medium_property(0.1, 0.1, 0, 0, 0, 1, "-200px -0px");
-  var sludge = new medium_property(0.2, 1, 0, 0, 0, 1, "-0px -0px");
+  var sludge = new medium_property(10, 0.5, 0, 0, 0, 1, "-400px -0px");
+  var final_line = new medium_property(4, 1, 0, 0, 0, 1, "-0px -100px");
 	
   //earth's gravity
   var earth = new world_physparams(2000);  
@@ -139,6 +140,13 @@ $(document).ready(function(){
   collision_interval = setInterval(function(){
     xposition = window[character].body.offset().left;
     yposition = window[character].body.offset().top;
+
+    //if the character falls below the lowest tile, then reset
+    //$("#stats").text(Math.round(bottom_tile_y) + " " + window[character].body.offset().top);
+    if (window[character].body.offset().top > bottom_tile_y){
+      reset_game("YOU LOST... Reset?");
+    }
+
     collision_detection(character, xposition, yposition);
 		//stand(character);
 	}, 1);
@@ -190,7 +198,7 @@ $(document).ready(function(){
     }	
   });
 });  
-  
+
 //this is what action the characters does
 function action(character){
   if (key_down['38'] == true && key_down['16'] == true){
@@ -222,17 +230,23 @@ function world_mapping(world){
 	var tile_name = 'land';
 	
 	var tile_counter = 0;
-	var tile_terrain = [1,1,1,1,1,2,2,1,2,1,1];
-	var tile_posx = [0,200,400,600,800,1000,1200,1300,1500,1700,2000];
-	var tile_posy = [500,500,400,300,200,250,250,100,50,100,100];
-	var tile_countmax = tile_terrain.length; 
+	var tile_terrain = [1,    1,  1,  1,  1,  2,    2,    1,    2,    1,    1,    2,    2,    1,    2,    2,    2,    2,    2,    2,    1,    1,    1,    1,    1,    1,    1,    1,    1,    2,    2,    2,    10];
+	var tile_posx =    [0,    200,400,600,800,1000, 1200, 1300, 1500, 1700, 2000, 2300, 2500, 2700, 3000, 3050, 3500, 3800, 4000, 4100, 3800, 3600, 3400, 3600, 3800, 4000, 4200, 4500, 4800, 5200, 5300, 5400, 5650];
+	var tile_posy =    [500,  500,400,300,200,250,  250,  100,  50,   100,  100,  400,  400,  500,  350,  250,  300, 400,   700,  1000, 1100, 1200, 1500, 1800, 2800, 2900, 3000, 3000, 3000, 3000, 2900, 2800, 2600];
+  bottom_tile_y = array_max(tile_posy);
+
+	var tile_countmax = tile_terrain.length;
 
   while (tile_counter < tile_countmax){
     if (tile_terrain[tile_counter] == 1){
     	tile_terrain_type = 'dirt';
   	}else if(tile_terrain[tile_counter] == 2){
     	tile_terrain_type = 'ice';
-  	}
+    }else if(tile_terrain[tile_counter] == 3){
+      tile_terrain_type = 'sludge';
+  	}else if(tile_terrain[tile_counter] == 10){
+      tile_terrain_type = 'final_line';
+    }
   	tile_creator(tile_name, tile_counter, tile_terrain_type, tile_posx[tile_counter], tile_posy[tile_counter]);
 		tile_counter = tile_counter + 1;
   }
@@ -247,6 +261,24 @@ function tile_creator(tile_name, tile_number, tile_terrain, x, y){
   var land_tile = '#'+tile_name+' .'+tile_name+tile_number;
 	//get the image and the appropriate image location
 	$(land_tile).css('background', "url('world_"+world+".gif') "+window[tile_terrain].image);
+
+  /*
+  if (tile_terrain == "final_line"){
+    var final_line_f = 0;
+    setInterval(function(){
+      if (final_line_f == 0){
+        $(land_tile).css('background', "url('world_"+world+".gif') -0px -100px");
+        final_line_f = 1;
+      }else if (final_line_f == 1){
+        $(land_tile).css('background', "url('world_"+world+".gif') -200px -100px");
+        final_line_f = 2;
+      }else if (final_line_f == 2){
+        $(land_tile).css('background', "url('world_"+world+".gif') -400px -100px");
+        final_line_f = 0;
+      }
+    }, 1000);
+  }*/
+
 	//position it
 	$(land_tile).css('left', x);
 	$(land_tile).css('top', y);
@@ -373,7 +405,11 @@ function collision_detection(character, character_x, character_y){
       master_collision_index = ozone_array[ozone_count].num;
       //$('#stats').text(master_collision_index);
 
-      //$('#stats').text(character+' '+world+' '+terrain);			
+      //$('#stats').text(character+' '+world+' '+terrain);
+
+      if (ozone_array[ozone_count].tile_terrain == "final_line"){
+        reset_game("YOU WON!!! Reset?");
+      }
 
 		}else if ((character_y >= yh_min && character_y <= yh_max) && 
 		((character_x > x && character_x < xw) || (character_xw > x && character_xw < xw) || (x > character_x && x < character_xw) || (xw > character_x && xw < character_xw)) && 
@@ -411,12 +447,17 @@ function collision_detection(character, character_x, character_y){
 function level_mover(xdisplacement, ydisplacement){
   var ozone_count = 0;
 	var tile_name = 'land';
+
+  //adjust the position of the bottom tile
+  bottom_tile_y = bottom_tile_y-ydisplacement+5;
+
   while (ozone_count < ozone_max){
 		var xposition = ozone_array[ozone_count].body.offset().left - xdisplacement;//- pushes the level back
-		if (ydisplacement != 0 && action_break == 3){//if the ydisplacement is 0, so the character is not moving vertically, do not move change the offset().top
+		
+    if (ydisplacement != 0 && action_break == 3){
   		var yposition = ozone_array[ozone_count].body.offset().top - ydisplacement + 5;//+ pushes the level down
 		}else if (ydisplacement != 0 && action_break == 4){
-  		var yposition = ozone_array[ozone_count].body.offset().top - ydisplacement - 5;//+ pushes the level down
+  		var yposition = ozone_array[ozone_count].body.offset().top - ydisplacement - 5;//- pushes the level up
 		}else{
   		var yposition = ozone_array[ozone_count].body.offset().top;//+ pushes the level down
 		}
@@ -496,7 +537,7 @@ function stop(character, world, terrain){
 			level_mover(0, ydisplacement);
 			window[character].body.css("left", xposition);
 		}
-		
+
     //if there are no displacements, then make the character stand there
 		if (ydisplacement == 0 && xdisplacement == 0){
   		//clearInterval(window[character].move_interval);
@@ -765,3 +806,25 @@ function random_value(minimum, maximum){
   return Math.round(Math.random()*(maximum-minimum+1)+minimum);
 }
 
+function array_max(array_to_check){
+  max_num = array_to_check[0];
+  array_length = array_to_check.length;
+  for (var i = 1; i < array_length; ++i){
+    if (array_to_check[i] > max_num){
+      max_num = array_to_check[i];
+    } 
+  }
+  return max_num;
+}
+
+//Reset the game
+//==============
+function reset_game(status){
+  $("#result").css("display", "block");
+  $("#result").text(status);
+  //location.reload();
+}
+
+$("#result").click(function(){
+  location.reload();  
+});
