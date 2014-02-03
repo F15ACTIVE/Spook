@@ -223,7 +223,7 @@ function action(character){
 //this creates the world spook runs through
 //it's dependent on the level and contains the array of information needed to pick the right tiles
 function world_mapping(world){
-	
+
 	//1 = dirt
 	//2 = ice
 	
